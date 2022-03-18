@@ -30,8 +30,6 @@ RUN curl -O https://cran.r-project.org/src/base/R-4/R-${R_VERSION}.tar.gz &&\
 
 WORKDIR /R-$R_VERSION
 
-### Don't think this does anything but just encase ....
-COPY ./config.site /R-$R_VERSION
 
 ### Build R from source
 RUN ./configure \
