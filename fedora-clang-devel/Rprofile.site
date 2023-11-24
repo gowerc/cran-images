@@ -1,2 +1,0 @@
-options(repos = list("CRAN" = "https://www.stats.bris.ac.uk/R/"))
-
