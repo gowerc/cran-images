@@ -1,4 +1,9 @@
 
+#
+#
+# TODO - This image needs to be reworked (see fedora-clang-devel for guidance)
+#
+#
 
 FROM fedora:latest
 
