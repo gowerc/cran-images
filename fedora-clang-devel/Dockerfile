@@ -69,6 +69,8 @@ RUN dnf install -y \
     java-17-openjdk java-17-openjdk-devel \
     openssl-devel \
     libcurl-devel \
+    diffutils \
+    texlive \
     freetype-devel \
     fribidi-devel \
     harfbuzz-devel \
@@ -178,13 +180,18 @@ RUN make && \
 RUN ln -s $(pwd)/bin/R /usr/local/bin/R && \
     ln -s $(pwd)/bin/Rscript /usr/local/bin/Rscript
 
-# Install additional libraries into side directory so that then can
-# be easily ignored by end users if needed
-RUN mkdir library_extra && \
-    echo -e "\n \
-options(repos = c(CRAN = \"https://cloud.r-project.org\"))\n\
-.libPaths(\"$(pwd)/library_extra\") \n \
-" >> $(Rscript -e "cat(R.home())")/etc/Rprofile.site
+## Install additional libraries into side directory so that then can
+## be easily ignored by end users if needed
+## ---
+## Have currently disabled this as it doesn't play well with `R CMD build`
+## which runs with `--vanilla` which disables the site profile and thus causes
+## vignette building to fail as none of the site packages can be found
+## ---
+# RUN mkdir library_extra && \
+#     echo -e "\n \
+# options(repos = c(CRAN = \"https://cloud.r-project.org\"))\n\
+# .libPaths(\"$(pwd)/library_extra\") \n \
+# " >> $(Rscript -e "cat(R.home())")/etc/Rprofile.site
 
 
 # Use binary distribution of latest pandoc as per CRAN build comments
@@ -249,6 +256,7 @@ RUN Rscript -e "install.packages(c(\
     'dbplyr',\
     'nlme',\
     'clubSandwich',\
+    'glmmTMB',\
     'dtplyr'\
     ), dependencies = TRUE)"
 

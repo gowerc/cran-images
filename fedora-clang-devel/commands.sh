@@ -52,4 +52,4 @@ R CMD check *.tar.gz
 
 # Both with no vignettes
 rm -rf mmrm.Rcheck/ mmrm_0.3.8.tar.gz
-R CMD build --no-build-vignettes .; R CMD check --no-vignettes *.tar.gz
+R CMD build --no-build-vignettes --no-manual .; R CMD check --no-vignettes *.tar.gz
