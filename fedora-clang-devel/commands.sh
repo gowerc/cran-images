@@ -7,19 +7,38 @@
 
 
 # Build the docker image
-docker build . --tag fedora-clang-devel:clang18 --no-cache
+# Add `--no-cache` to force build from scratch
 
+docker build --target base -t fedora-clang-devel:base .
+docker build --target core -t fedora-clang-devel:core .
+docker build --target extended -t fedora-clang-devel:extended .
+
+
+################
+#
+#  Publish Image
+#
+
+docker tag fedora-clang-devel:extended gowerc1/fedora-clang-devel:clang18
+
+
+
+
+################
+#
+#  Testing package within container
+#
 
 # Launch a detached container so VScode can attach itself
-docker run --rm -dt fedora-clang-devel:clang18 bash
+docker run --rm -dt fedora-clang-devel:extended bash 
 
+# Or run interactive container and submit commands via terminal
+docker run --rm -it fedora-clang-devel:extended bash
 
+##### All following commands are to be run from within the container
 
-#############
-#
-#  In container
-#
-
+mkdir /app
+cd /app
 
 # Clone repo
 git clone https://github.com/insightsengineering/rbmi.git

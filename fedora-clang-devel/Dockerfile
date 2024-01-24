@@ -1,16 +1,19 @@
 
 
 
-FROM fedora:36
+################################
+#
+# Base
+#   - Installing the clang + fortran compiler
+#
+#
+#
+
+
+FROM fedora:36 as base
 
 ## Tracking commit as specified in https://www.stats.ox.ac.uk/pub/bdr/clang18/mmrm.out
 ENV CLANG_COMMIT=8e7f073eb42c92aa7a2b651ca314d7fcebf296e3
-
-## Full list found at: https://cran.r-project.org/src/base-prerelease/ 
-ENV R_URL=https://cran.r-project.org/src/base-prerelease/R-devel_2024-01-14_r85805.tar.gz
-
-## Set url to download pandoc from
-ENV PANDOC_URL=https://github.com/jgm/pandoc/releases/download/3.1.11.1/pandoc-3.1.11.1-linux-amd64.tar.gz
 
 ## Minimal list of software to compile clang
 RUN dnf install -y git cmake make xz wget curl binutils gcc g++ libcxx-devel perl
@@ -35,9 +38,30 @@ RUN mkdir -p /tools/clang && \
         # -D CMAKE_CXX_COMPILER=clang-14 \
         # -D CMAKE_CXX_FLAGS=-stdlib=libc++ \
 
-
-
 ENV PATH="/tools/clang/build/bin:$PATH"
+
+
+
+
+
+
+################################
+#
+# Core
+#   - Installing R and other essential software
+#
+#
+#
+
+
+FROM base as core
+
+## Full list found at: https://cran.r-project.org/src/base-prerelease/ 
+ENV R_URL=https://cran.r-project.org/src/base-prerelease/R-devel.tar.gz
+
+## Set url to download pandoc from
+ENV PANDOC_URL=https://github.com/jgm/pandoc/releases/download/3.1.11.1/pandoc-3.1.11.1-linux-amd64.tar.gz
+
 
 ## Install all system library requirements for installing R and its packages
 RUN dnf install -y \
@@ -53,6 +77,8 @@ RUN dnf install -y \
     libxml2-devel \
     libicu-devel \
     tidy \
+    rsync \
+    ed \
     libomp-devel \
     vim \
     libjpeg-turbo-devel \
@@ -98,7 +124,11 @@ WORKDIR /tools/R
 # 
 # To match the clang-18 machine we also need to set `FC=flang-new`. This is the only
 # machine that uses this compiler.
-# 
+#
+# Openmp is built as part of the LLVM compiler tool chain. Need to manually add the path
+# the the omp.h header files as it is not in clangs default search path. e.g
+# add `-I/tools/clang/build/projects/openmp/runtime/src` to CXXFLAGS
+#
 
 
 RUN mkdir $HOME/.R
@@ -106,11 +136,11 @@ RUN echo -e "\n\
 PKG_CFLAGS+=-fsanitize=pointer-overflow -fsanitize-trap=pointer-overflow \n\
 CFLAGS=-O3 -Wall -pedantic -Wp,-D_FORTIFY_SOURCE=3 \n\
 FFLAGS=-O2 -pedantic \n\
-CXXFLAGS=-O3 -Wall -pedantic -frtti -Wp,-D_FORTIFY_SOURCE=3\n\
-LDFLAGS=-L/lib64 -L/tools/clang/build/lib \n\
+CXXFLAGS=-O3 -Wall -pedantic -frtti -Wp,-D_FORTIFY_SOURCE=3 -I/tools/clang/build/projects/openmp/runtime/src\n\
+LDFLAGS=-L/lib64 -L/tools/clang/build/lib\n\
 FC=flang-new \n\
 CC=clang \n\
-CXX=clang++ -stdlib=libc++\n\
+CXX=clang++ -stdlib=libc++ \n\
 CXX11=clang++ -stdlib=libc++ -std=c++11 -fPIC\n\
 CXX14=clang++ -stdlib=libc++ -std=c++14\n\
 CXX17=clang++ -stdlib=libc++ -std=c++17 -fPIC\n\
@@ -165,6 +195,20 @@ RUN cd /tools && \
     mv pandoc-* pandoc
 RUN ln -s /tools/pandoc/bin/pandoc /usr/local/bin/pandoc
 
+
+
+
+
+################################
+#
+# Extended
+#   - Installing nice-to have R libraries
+#
+#
+#
+
+
+FROM core as extended
 
 # Build V8 using GCC as it cannot be built against clang + libc++
 # First install GCC dependencies
