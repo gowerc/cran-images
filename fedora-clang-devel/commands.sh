@@ -21,6 +21,7 @@ docker build --target extended -t fedora-clang-devel:extended .
 
 docker tag fedora-clang-devel:extended gowerc1/fedora-clang-devel:clang18
 
+docker push gowerc1/fedora-clang-devel:clang18
 
 
 
@@ -42,8 +43,11 @@ cd /app
 
 # Clone repo
 git clone https://github.com/insightsengineering/rbmi.git
+git clone https://github.com/openpharma/mmrm.git
 
-cd rbmi
+cd mmrm
+
+git switch --detach daed4b0
 
 # Build and test
 R CMD build .

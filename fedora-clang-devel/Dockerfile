@@ -187,11 +187,11 @@ RUN ln -s $(pwd)/bin/R /usr/local/bin/R && \
 ## which runs with `--vanilla` which disables the site profile and thus causes
 ## vignette building to fail as none of the site packages can be found
 ## ---
-# RUN mkdir library_extra && \
-#     echo -e "\n \
-# options(repos = c(CRAN = \"https://cloud.r-project.org\"))\n\
+RUN mkdir library_extra && \
+    echo -e "\n \
+options(repos = c(CRAN = \"https://cloud.r-project.org\"))\n\
 # .libPaths(\"$(pwd)/library_extra\") \n \
-# " >> $(Rscript -e "cat(R.home())")/etc/Rprofile.site
+" >> $(Rscript -e "cat(R.home())")/etc/Rprofile.site
 
 
 # Use binary distribution of latest pandoc as per CRAN build comments
